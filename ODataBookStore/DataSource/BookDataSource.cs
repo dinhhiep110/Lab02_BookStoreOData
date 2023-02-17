@@ -19,6 +19,7 @@ namespace ODataBookStore.DataSource
                 ISBN = "978-1-56619-909-4",
                 Title = "Head First Python",
                 Price = 59.99m,
+                Author = "AKJS",
                 Location = new Address
                 {
                     City = "Ha Noi",
@@ -38,6 +39,7 @@ namespace ODataBookStore.DataSource
                 ISBN = "978-1-56619-909-5",
                 Title = "Head First Java",
                 Price = 69.99m,
+                Author = "KLJSK",
                 Location = new Address
                 {
                     City = "Ha Noi",
@@ -57,6 +59,7 @@ namespace ODataBookStore.DataSource
                 ISBN = "978-1-56619-909-6",
                 Title = "Head First C",
                 Price = 49.99m,
+                Author = "IHFISII",
                 Location = new Address
                 {
                     City = "Ha Noi",
@@ -76,6 +79,7 @@ namespace ODataBookStore.DataSource
                 ISBN = "978-1-56619-909-7",
                 Title = "Business",
                 Price = 59.99m,
+                Author = "PLSSJK",
                 Location = new Address
                 {
                     City = "HCM",
