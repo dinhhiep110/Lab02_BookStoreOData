@@ -1,9 +1,11 @@
-﻿using System.ComponentModel;
+﻿using MessagePack;
+using System.ComponentModel;
 
 namespace ODataBookStore.Models
 {
     public class Book
     {
+
         public int Id { get; set; }
 
         //International Standard Book Number

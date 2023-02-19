@@ -1,4 +1,6 @@
-﻿namespace ODataBookStore.Models
+﻿using Newtonsoft.Json.Linq;
+
+namespace ODataBookStore.Models
 {
     public class Press
     {

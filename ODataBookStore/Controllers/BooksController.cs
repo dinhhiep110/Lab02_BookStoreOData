@@ -32,7 +32,7 @@ namespace ODataBookStore.Controllers
 
 
         // GET: api/<BooksController>
-        [EnableQuery(PageSize = 2)]
+        [EnableQuery(PageSize = 6)]
         [HttpGet]
         public IActionResult Get()
         {
@@ -64,6 +64,20 @@ namespace ODataBookStore.Controllers
             bookStoreContext.Books.Add(book);
             bookStoreContext.SaveChanges();
             return Created(book);
+        }
+
+        [EnableQuery]
+        [HttpPut]
+        // POST api/<BooksController>
+        public IActionResult Put([FromBody] Book book)
+        {
+            if (book == null)
+            {
+                return NotFound();
+            }
+            bookStoreContext.Books.Update(book);
+            bookStoreContext.SaveChanges();
+            return Ok(book);
         }
 
         [EnableQuery]

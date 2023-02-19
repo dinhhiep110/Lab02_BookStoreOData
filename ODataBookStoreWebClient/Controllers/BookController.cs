@@ -1,8 +1,11 @@
-﻿using System.Net.Http.Headers;
+﻿using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Security.Policy;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
 using ODataBookStore.Models;
+using static System.Net.WebRequestMethods;
 
 namespace ODataBookStoreWebClient.Controllers
 {
@@ -10,53 +13,60 @@ namespace ODataBookStoreWebClient.Controllers
     {
 
         private readonly HttpClient client;
-        private string ProductApiUrl;
+        private string BookApiUrl;
 
         public BookController()
         {
             client = new HttpClient();
             var contentType = new MediaTypeWithQualityHeaderValue("application/json");
             client.DefaultRequestHeaders.Accept.Add(contentType);
-            ProductApiUrl = "https://localhost:7035/odata/Books";
+            BookApiUrl = $"https://localhost:7035/odata/Books";
         }
-
-
-
 
         // GET: Book
         public async Task<IActionResult> Index()
         {
-            HttpResponseMessage response = await client.GetAsync(ProductApiUrl);
-            string strData = await response.Content.ReadAsStringAsync();
-            dynamic temp = JObject.Parse(strData);
-            var lst = temp.value;
-            List<Press> items = ((JArray)temp.value).Select(x => new Press
-            {
-                Id = (int)x["Id"],
-                Name = (string)x["Name"],
-            }).ToList();
-            return View(items);
+            
+            return View(await GetBooks());
         }
 
         // GET: Book/Details/5
-        public ActionResult Details(int id)
+        public async Task<IActionResult> Details(int id)
         {
-            return View();
+            List<Book> listBooks = await GetBooks();
+            Book book = listBooks.FirstOrDefault(b => b.Id == id);
+            if (book == null)
+            {
+                return NotFound();
+            }
+            return View(book);
         }
 
         // GET: Book/Create
         public ActionResult Create()
         {
-            return View();
+            ViewData["Category"] = GetCategories();
+            return View(new Book());
+        }
+
+        private List<string> GetCategories()
+        {
+            return new List<string> { Category.BOOK.ToString(),Category.EBOOK.ToString(),Category.MAGAZINE.ToString() };
         }
 
         // POST: Book/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
+        public async Task<ActionResult> CreateBook([FromForm]Book book)
         {
             try
             {
+                if (book == null)
+                {
+                    return BadRequest();
+                }
+                string url = "https://localhost:7035/api/Books/Post";
+                await client.PostAsJsonAsync(url, book);
                 return RedirectToAction(nameof(Index));
             }
             catch
@@ -66,18 +76,31 @@ namespace ODataBookStoreWebClient.Controllers
         }
 
         // GET: Book/Edit/5
-        public ActionResult Edit(int id)
+        public async Task<ActionResult> Edit(int? id)
         {
-            return View();
+            List<Book> listBooks = await GetBooks();
+            Book book = listBooks.FirstOrDefault(b => b.Id == id);
+            if(book == null || id == null)
+            {
+                return NotFound();
+            }
+            ViewData["Category"] = GetCategories();
+            return View(book);
         }
 
-        // POST: Book/Edit/5
         [HttpPost]
+        // POST: Book/Edit/5
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
+        public async Task<ActionResult> EditBook([FromForm] Book book)
         {
             try
             {
+                if (book == null)
+                {
+                    return BadRequest();
+                }
+                string url = "https://localhost:7035/api/Books/Put";
+                await client.PutAsJsonAsync(url, book);
                 return RedirectToAction(nameof(Index));
             }
             catch
@@ -87,24 +110,38 @@ namespace ODataBookStoreWebClient.Controllers
         }
 
         // GET: Book/Delete/5
-        public ActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            return View();
+            List<Book> products = await GetBooks();
+            Book product = products.FirstOrDefault(b => b.Id == id);
+            if (product == null)
+            {
+                return NotFound();
+            }
+            String urlForDelete = "https://localhost:7035/api/Books";
+            String url = urlForDelete + "/Delete/id?id=" + id;
+            await client.DeleteAsync(url);
+            return Redirect("/Book/Index");
         }
 
-        // POST: Book/Delete/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
+        private async Task<List<Book>> GetBooks()
         {
-            try
+            using(HttpResponseMessage response = await client.GetAsync(BookApiUrl))
             {
-                return RedirectToAction(nameof(Index));
+                string strData = await response.Content.ReadAsStringAsync();
+                dynamic temp = JObject.Parse(strData);
+                var lst = temp.value;
+                List<Book> items = ((JArray)temp.value).Select(x => new Book
+                {
+                    Id = (int)x["Id"],
+                    Author = (string)x["Author"],
+                    ISBN = (string)x["ISBN"],
+                    Title = (string)x["Title"],
+                    Price = (decimal)x["Price"]
+                }).ToList();
+                return items;
             }
-            catch
-            {
-                return View();
-            }
+            
         }
     }
 }
